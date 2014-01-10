@@ -8,4 +8,7 @@
 5. In Shell.c we use apr_proc_create which creates a unix process or heavyweight thread. I noticed 
 	that apr also has apr_thread_create. Could you elaborate on the criteria when choosing one or the other?
 6. Consider making the type: process or thread, optional, with default to process.
-
+7. Execute CLEAN_SH template only at the start, not at the end. Motivation is that you can check out
+   what was created in the /tmp/pkg- directory whether there was an error or not. If you clean at start 
+   and at end, then no trace is left to check out.
+8. Asked Zed whether I could insert a license in my copy of the source.
