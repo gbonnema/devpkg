@@ -1,0 +1,11 @@
+** Remarks **
+1. Pattern is part of commands.h, shell exec parameters are part of shell.h
+	a. make pattern to recognize type of command part of shell exec, so all info for 
+	exec is in one place.
+2. Shell_exec calls Shell_run, but does not check rc == 0. It should.
+3. In devpkg.c the option for "d:" is not processed anywhere in the switch statement: what should it have done?
+4. In devpkg.c 28, rv is assigned, but not tested: should get a check(rv == 0, "xxx")?
+5. In Shell.c we use apr_proc_create which creates a unix process or heavyweight thread. I noticed 
+	that apr also has apr_thread_create. Could you elaborate on the criteria when choosing one or the other?
+6. Consider making the type: process or thread, optional, with default to process.
+
