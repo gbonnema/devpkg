@@ -1,18 +1,31 @@
 Use of devpkg
 =============
 
-devpkg -I <url>			# Install package from <url>
-devpkg -L				# list installed packages
-devpkg -c				#
-devpkg -m				#
-devpkg -I -i <options>	# install options <options>
-devpkg -d				#	????
-devpkg -S				# create /usr/local/.devpkg/db
-devpkg -F <url>			# fetch package at <url>
-devpkg -B <url>			# build package from <url>
+devpkg <Command> <Options>
+
+Commands:
+-I <url>				# Install package from <url>
+-L						# list installed packages
+-S						# create /usr/local/.devpkg/db
+-F <url>				# fetch package at <url>
+-B <url>				# build package from <url>
+
+Options: 
+-c <config options>		#
+-m <make options>		#
+-i <install options>	# 
+-d						# Not implemented
+
+Examples:
+
+devpkg -S											# initialize installed package file (/usr/local/.devpkg/db)
+devpkg -I https://github.com/userid/reponame		# To install software from repo
+devpkg -L											# Show installed packages
+devpkg -F http://xxxxx/package.tar.gz				# Fetch package
+devpkg -B http://yyyyy/package.tar.bz2				# Fecth and build package
 
 
-About Devpkg
+About Devpkg (README version from Zed A. Shaw)
 ============
 
 This is a small little project I'm tinkering on for my book

@@ -1,5 +1,5 @@
 /*
-This program assists in adding lines to a file.
+This program provides functions to run shell commands using templates (provided in shell.c)
 
 Copyright (C) 2014  Zed A. Shaw		
 			  2014  Guus Bonnema	Copied program in Jan 2014 from Zed Shaw

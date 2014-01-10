@@ -1,5 +1,5 @@
 /*
-This program assists in adding lines to a file.
+This program assists in fetching, building, and installing software packages 
 
 Copyright (C) 2014  Zed A. Shaw		
 			  2014  Guus Bonnema	Copied program in Jan 2014 from Zed Shaw
@@ -117,6 +117,7 @@ int main(int argc, const char const *argv[])
 		default:
 
 			sentinel("\nUSAGE: devpkg <command> [<options>]"
+					 "\n"
 					 "\n\tCommands:"
 					 "\n\t-I <url> \tInstall package from <url>"
 					 "\n\t-L\t\tList installed packages"
@@ -127,6 +128,8 @@ int main(int argc, const char const *argv[])
 					 "\n\t-c <config-opts>"
 					 "\n\t-m <make-opts>"
 					 "\n\t-i <install-opts>"
+					 "\n\t-d               # Not implemented yet"
+					 "\n"
 					);
 	}
 

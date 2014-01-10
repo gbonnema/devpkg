@@ -1,5 +1,5 @@
 /*
-This program assists in adding lines to a file.
+This program provides functions to build, make and install programs, based on shell utilities.
 
 Copyright (C) 2014  Zed A. Shaw		
 			  2014  Guus Bonnema	Copied program in Jan 2014 from Zed Shaw
