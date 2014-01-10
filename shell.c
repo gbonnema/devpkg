@@ -43,6 +43,12 @@ int Shell_exec(Shell template, ...)
 	{
 		arg = va_arg(argp, const char *);
 
+		if(template.exe != NULL && template.exe[0] == '!') {
+			if(strcmp(template.exe, key) == 0) {
+				template.exe = arg;
+			}
+		}
+
 		for(i = 0; template.args[i] != NULL; i++) {
 			if(strcmp(template.args[i], key) == 0) {
 				template.args[i] = arg;
@@ -97,6 +103,12 @@ error:
 	return -1;
 }
 
+Shell PREBUILD_SH = {
+	.exe = "!NAME",
+	.dir = "/tmp/pkg-build",
+	.args = {"!NAME", NULL}
+};
+
 Shell CLEANUP_SH = {
 	.exe = "rm",
 	.dir = "/tmp",
@@ -125,7 +137,7 @@ Shell CURL_SH = {
 Shell CONFIGURE_SH = {
 	.exe = "./configure",
 	.dir = "/tmp/pkg-build",
-	.args = {"configure", "OPTS", NULL},
+	.args = {"configure", "OPTS", NULL}
 };
 
 Shell MAKE_SH = {

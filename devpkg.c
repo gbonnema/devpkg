@@ -43,13 +43,14 @@ int main(int argc, const char const *argv[])
 	const char *config_opts = NULL;
 	const char *install_opts = NULL;
 	const char *make_opts = NULL;
+	const char *prebuild = NULL;
 	const char *url = NULL;
 	enum CommandType request = COMMAND_NONE;
 
 
 	rv = apr_getopt_init(&opt, p, argc, argv);
 
-	while(apr_getopt(opt, "I:Lc:m:i:d:SF:B:", &ch, &optarg) == APR_SUCCESS) {
+	while(apr_getopt(opt, "I:Lc:m:i:p:d:SF:B:", &ch, &optarg) == APR_SUCCESS) {
 		switch (ch) {
 			case 'I':
 				request = COMMAND_INSTALL;
@@ -72,6 +73,10 @@ int main(int argc, const char const *argv[])
 				install_opts = optarg;
 				break;
 
+			case 'p':
+				prebuild = optarg;
+				break;
+
 			case 'S':
 				request = COMMAND_INIT;
 				break;
@@ -91,7 +96,7 @@ int main(int argc, const char const *argv[])
 	switch(request) {
 		case COMMAND_INSTALL:
 			check(url, "You must at least give a URL.");
-			Command_install(p, url, config_opts, make_opts, install_opts);
+			Command_install(p, url, config_opts, make_opts, install_opts, prebuild);
 			break;
 
 		case COMMAND_LIST:
@@ -99,14 +104,14 @@ int main(int argc, const char const *argv[])
 			break;
 
 		case COMMAND_FETCH:
-			check(url != NULL, "You must give a URL.");
+			check(url, "You must give a URL.");
 			Command_fetch(p, url, 1);
 			log_info("Downloaded to %s and in /tmp/", BUILD_DIR);
 			break;
 
 		case COMMAND_BUILD:
 			check(url, "You must at least give a URL.");
-			Command_build(p, url, config_opts, make_opts, install_opts);
+			Command_build(p, url, config_opts, make_opts, install_opts, prebuild);
 			break;
 
 		case COMMAND_INIT:
@@ -128,6 +133,7 @@ int main(int argc, const char const *argv[])
 					 "\n\t-c <config-opts>"
 					 "\n\t-m <make-opts>"
 					 "\n\t-i <install-opts>"
+					 "\n\t-p <prebuild-script>"
 					 "\n\t-d               # Not implemented yet"
 					 "\n"
 					);

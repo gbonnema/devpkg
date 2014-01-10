@@ -42,7 +42,7 @@ int Command_depends(apr_pool_t *p, const char *path)
 	{
 		btrimws(line);
 		log_info("Processing depends: %s", bdata(line));
-		int rc = Command_install(p, bdata(line), NULL, NULL, NULL);
+		int rc = Command_install(p, bdata(line), NULL, NULL, NULL, NULL);
 		check(rc == 0, "Failed to install: %s", bdata(line));
 		bdestroy(line);
 	}
@@ -124,13 +124,22 @@ error:
 }
 
 int Command_build(apr_pool_t *p, const char *url, const char *configure_opts,
-		const char *make_opts, const char *install_opts)
+		const char *make_opts, const char *install_opts, const char *prebuild)
 {
 	int rc = 0;
 
 	check(access(BUILD_DIR, X_OK | R_OK | W_OK) == 0, 
 			"Build directory doesn't exist: %s", BUILD_DIR);
 
+	// Research possible use of autogen or autogen-script.
+	// TODO: Find possible use of autogen, libtools, autoconf, autoreconf
+	if(prebuild) {
+		if(access(prebuild, X_OK) == 0) {
+			log_info("Prebuild specified: %s. Starting now.", prebuild);
+			rc = Shell_exec(PREBUILD_SH, "!NAME", prebuild, NULL);
+			check(rc == 0, "Failed the prebuild.");
+		}
+	}
 	// actually do an install
 	if(access(CONFIG_SCRIPT, X_OK) == 0) {
 		log_info("Has a configure script, running it.");
@@ -159,7 +168,7 @@ error:
 }
 
 int Command_install(apr_pool_t *p, const char *url, const char *configure_opts,
-		const char *make_opts, const char *install_opts)
+		const char *make_opts, const char *install_opts, const char *prebuild)
 {
 	int rc = 0;
 	check(Shell_exec(CLEANUP_SH, NULL) == 0, "Failed to cleanup before building.");
@@ -175,7 +184,7 @@ int Command_install(apr_pool_t *p, const char *url, const char *configure_opts,
 	rc = Command_fetch(p, url, 0);
 
 	if(rc == 1) {
-		rc = Command_build(p, url, configure_opts, make_opts, install_opts);
+		rc = Command_build(p, url, configure_opts, make_opts, install_opts, prebuild);
 		check(rc == 0, "Failed to build %s", url);
 	} else if(rc == 0) {
 		// no install needed
@@ -185,11 +194,11 @@ int Command_install(apr_pool_t *p, const char *url, const char *configure_opts,
 		sentinel("Install failed: %s.", url);
 	}
 
-	//Shell_exec(CLEANUP_SH, NULL);
+	//Shell_exec(CLEANUP_SH, NULL); // Do not clean after, only before
 	return 0;
 
 error:
-	//Shell_exec(CLEANUP_SH, NULL);
+	//Shell_exec(CLEANUP_SH, NULL);	// Do not clean after error or you lose information
 	return -1;
 }
 

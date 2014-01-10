@@ -43,11 +43,11 @@ enum CommandType {
 int Command_fetch(apr_pool_t *p, const char *url, int fetch_only);
 
 int Command_install(apr_pool_t *p, const char *url, const char *configure_opts,
-		const char *make_opts, const char *install_opts);
+		const char *make_opts, const char *install_opts, const char *prebuild);
 
 int Command_depends(apr_pool_t *p, const char *path);
 
 int Command_build(apr_pool_t *p, const char *url, const char *configure_opts,
-		const char *make_opts, const char *install_opts);
+		const char *make_opts, const char *install_opts, const char *prebuild);
 
 #endif
