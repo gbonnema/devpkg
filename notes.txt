@@ -12,3 +12,4 @@
    what was created in the /tmp/pkg- directory whether there was an error or not. If you clean at start 
    and at end, then no trace is left to check out.
 8. Asked Zed whether I could insert a license in my copy of the source.
+9. Altered DESTDIR to not contain a leading slash, as the result will be //usr/local/bin
