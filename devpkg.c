@@ -38,6 +38,8 @@ int main(int argc, const char const *argv[])
 	apr_getopt_t *opt;
 	apr_status_t rv;
 
+	int rc = 0;
+
 	char ch = '\0';
 	const char *optarg = NULL;
 	const char *config_opts = NULL;
@@ -50,7 +52,7 @@ int main(int argc, const char const *argv[])
 
 	rv = apr_getopt_init(&opt, p, argc, argv);
 
-	while(apr_getopt(opt, "I:Lc:m:i:p:d:SF:B:", &ch, &optarg) == APR_SUCCESS) {
+	while((rv = apr_getopt(opt, "I:Lc:m:i:p:d:SF:B:", &ch, &optarg)) == APR_SUCCESS) {
 		switch (ch) {
 			case 'I':
 				request = COMMAND_INSTALL;
@@ -92,26 +94,30 @@ int main(int argc, const char const *argv[])
 				break;
 		}
 	}
+	check(rv == APR_EOF, "Unknown parameters provided.");
 
 	switch(request) {
 		case COMMAND_INSTALL:
 			check(url, "You must at least give a URL.");
-			Command_install(p, url, config_opts, make_opts, install_opts, prebuild);
+			rc = Command_install(p, url, config_opts, make_opts, install_opts, prebuild);
+			check(rc == 0, "Failed to install the software.");
 			break;
 
 		case COMMAND_LIST:
-			DB_list();
+			rc = DB_list();
 			break;
 
 		case COMMAND_FETCH:
 			check(url, "You must give a URL.");
-			Command_fetch(p, url, 1);
+			rc = Command_fetch(p, url, 1);
+			check(rc == 0, "Failed to fetch the software.");
 			log_info("Downloaded to %s and in /tmp/", BUILD_DIR);
 			break;
 
 		case COMMAND_BUILD:
 			check(url, "You must at least give a URL.");
-			Command_build(p, url, config_opts, make_opts, install_opts, prebuild);
+			rc = Command_build(p, url, config_opts, make_opts, install_opts, prebuild);
+			check(rc == 0, "Failed to build the software.");
 			break;
 
 		case COMMAND_INIT:
@@ -133,15 +139,15 @@ int main(int argc, const char const *argv[])
 					 "\n\t-c <config-opts>"
 					 "\n\t-m <make-opts>"
 					 "\n\t-i <install-opts>"
-					 "\n\t-p <prebuild-script>"
+					 "\n\t-p <prebuild-scriptname>"
 					 "\n\t-d               # Not implemented yet"
 					 "\n"
 					);
 	}
-
-
+	apr_pool_terminate();
 	return 0;
 
 error:
-	return 1;
+	apr_pool_terminate();
+	return -1;
 }

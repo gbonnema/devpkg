@@ -20,7 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "shell.h"
 #include "dbg.h"
+#include "bstrlib.h"
 #include <stdarg.h>
+#include <stdlib.h>
 
 int Shell_exec(Shell template, ...)
 {
@@ -30,6 +32,8 @@ int Shell_exec(Shell template, ...)
 	va_list argp;
 	const char *key = NULL;
 	const char *arg = NULL;
+	char *dest = NULL;
+	char *tofree = NULL;
 	int i = 0;
 
 	rv = apr_pool_create(&p, NULL);
@@ -45,7 +49,9 @@ int Shell_exec(Shell template, ...)
 
 		if(template.exe != NULL && template.exe[0] == '!') {
 			if(strcmp(template.exe, key) == 0) {
-				template.exe = arg;
+				bstring script = bfromcstr(arg);
+				template.exe = tofree = bstr2cstr(script, ' ');
+				bdestroy(script);
 			}
 		}
 
@@ -58,11 +64,21 @@ int Shell_exec(Shell template, ...)
 	}
 
 	rc = Shell_run(p, &template);
+	if (dest) free(dest);
+	if (tofree) {
+		bcstrfree(tofree);
+		template.exe = tofree = NULL;
+	}
 	apr_pool_destroy(p);
 	va_end(argp);
 	return rc;
 
 error:
+	if(dest) free(dest);
+	if (tofree) {
+		bcstrfree(tofree);
+		template.exe = tofree = NULL;
+	}
 	if(p) {
 		apr_pool_destroy(p);
 	}
@@ -103,10 +119,27 @@ error:
 	return -1;
 }
 
+char *Shell_filename(Shell shell, const char *fname) {
+	char *result = NULL;
+	int rc = 0;
+	bstring bdir_fname = bfromcstr(PREBUILD_SH.dir);
+	bstring bfname = bfromcstr(fname);
+	rc = bcatcstr(bdir_fname, "/");
+	check(rc == BSTR_OK, "Error during concat of path and / for %s", PREBUILD_SH.dir);
+	rc = bconcat(bdir_fname, bfname);
+	check(rc == 0, "Allocating pathname from dir %s and file %s failed.", PREBUILD_SH.dir, fname);
+	result = bstr2cstr(bdir_fname, ' ');
+	// fallthrough
+error:
+	bdestroy(bfname);
+	bdestroy(bdir_fname);
+	return result;
+}
+
 Shell PREBUILD_SH = {
-	.exe = "!NAME",
+	.exe = "!NAME",					// !variables are replaced by a specified value
 	.dir = "/tmp/pkg-build",
-	.args = {"!NAME", NULL}
+	.args = {"!NAME", NULL}			// !variables are replaced by a specified value
 };
 
 Shell CLEANUP_SH = {

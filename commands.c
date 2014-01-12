@@ -131,14 +131,20 @@ int Command_build(apr_pool_t *p, const char *url, const char *configure_opts,
 	check(access(BUILD_DIR, X_OK | R_OK | W_OK) == 0, 
 			"Build directory doesn't exist: %s", BUILD_DIR);
 
-	// Research possible use of autogen or autogen-script.
-	// TODO: Find possible use of autogen, libtools, autoconf, autoreconf
+	// Find use of autogen, libtools, autoconf, autoreconf
+	// or other prebuild tools. Accept the name of a script
 	if(prebuild) {
-		if(access(prebuild, X_OK) == 0) {
-			log_info("Prebuild specified: %s. Starting now.", prebuild);
-			rc = Shell_exec(PREBUILD_SH, "!NAME", prebuild, NULL);
-			check(rc == 0, "Failed the prebuild.");
-		}
+		char *fname = Shell_filename(PREBUILD_SH, prebuild);
+		check(fname, "Allocating name for %s and %s failed.", PREBUILD_SH.dir, prebuild);
+		check(access(fname, X_OK) == 0, 
+				"Prebuild script %s is not executable or does not exist.", fname);
+		log_info("Prebuild script %s found. Starting execution.", fname);
+		rc = Shell_exec(PREBUILD_SH, "!NAME", fname, NULL);
+		check(rc == 0, "Failed the prebuild.");
+		log_info("Prebuild script %s finished successfully.", fname);
+
+		rc = bcstrfree(fname);
+		check(rc == 0, "Failed to free cstring");
 	}
 	// actually do an install
 	if(access(CONFIG_SCRIPT, X_OK) == 0) {
@@ -147,19 +153,27 @@ int Command_build(apr_pool_t *p, const char *url, const char *configure_opts,
 		check(rc == 0, "Failed to configure.");
 	}
 
+	log_info("Starting build with make script.");
 	rc = Shell_exec(MAKE_SH, "OPTS", make_opts, NULL);
 	check(rc == 0, "Failed to build.");
+	log_info("Build with make successfully finished.");
 
+	log_info("Starting install with make script.");
 	rc = Shell_exec(INSTALL_SH, 
 			"TARGET", install_opts ? install_opts : "install", 
 			NULL);
 	check(rc == 0, "Failed to install.");
+	log_info("Install with make successfully finished.");
 
+	log_info("Starting cleanup script.");
 	rc = Shell_exec(CLEANUP_SH, NULL);
 	check(rc == 0, "Failed to cleanup after build.");
+	log_info("Finished cleanup script.");
 
+	log_info("Starting DB update.");
 	rc = DB_update(url);
 	check(rc == 0, "Failed to add this package to the database.");
+	log_info("Finished DB update.");
 
 	return 0;
 
